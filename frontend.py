@@ -5,16 +5,26 @@ from tkinter import ttk
 PAD = 5
 
 
+class MainWindow:
+	def __init__(self, main):
+		self.tab_control = ttk.Notebook(main)
+
+	def pack(self):
+		self.tab_control.pack(expand=1, fill=tk.BOTH)
+
+
 class Search:
 	HEADINGS = {'id': 'Номер', 'cost': 'Цена', 'age': 'Год'}
 	show = ['id', 'cost', 'age']
 
 	def __init__(self, main):
-		self.find = tk.Entry(main)
+		self.tab1 = ttk.Frame(main)
+		main.add(self.tab1, text='Search')
+		self.find = tk.Entry(self.tab1)
 		self.find.grid(row=0, column=0, stick='w', padx=PAD, pady=PAD)
-		self.btn_find = tk.Button(main, text='Добавить')
+		self.btn_find = tk.Button(self.tab1, text='Добавить')
 		self.btn_find.grid(row=0, column=1, stick='e', padx=PAD, pady=PAD)
-		self.table = ttk.Treeview(main, columns=self._reformat_column(), show='headings')
+		self.table = ttk.Treeview(self.tab1, columns=self._reformat_column(), show='headings')
 		self.table.grid(row=2, column=0, columnspan=2)
 		self._show_headings()
 
@@ -43,9 +53,11 @@ class Search:
 
 class Path:
 	def __init__(self, main):
-		self.lb = tk.Label(main, text='Вставьте путь расположения файла БД')
+		self.tab2 = ttk.Frame(main)
+		main.add(self.tab2, text='Path')
+		self.lb = tk.Label(self.tab2, text='Вставьте путь расположения файла БД')
 		self.lb.grid(row=0, column=0, padx=PAD, pady=PAD)
-		self.entry = tk.Entry(main, width=50)
+		self.entry = tk.Entry(self.tab2, width=50)
 		self.entry.grid(row=0, column=1, padx=PAD, pady=PAD)
 		self.btn_add = tk.Button(text='Внести изменения')
 
