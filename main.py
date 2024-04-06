@@ -1,17 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
 import frontend as fr
+import backend as bk
 
 
 if __name__ == '__main__':
 	root = tk.Tk()
 	root.title("Beer")
-	tab_control = ttk.Notebook(root)
-	tab1 = ttk.Frame(tab_control)
-	tab2 = ttk.Frame(tab_control)
-	tab_control.add(tab1, text="Search")
-	tab_control.add(tab2, text="Path")
-	tab_control.pack(expand=1, fill=tk.BOTH)
-	tab_search = fr.Search(tab1)
-	tab_path = fr.Path(tab2)
+	main_wind = fr.MainWindow(root)
+	tab_search = fr.Search(main_wind.tab_control)
+	tab_path = fr.Path(main_wind.tab_control)
+	main_wind.pack()
 	root.mainloop()
