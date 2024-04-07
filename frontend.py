@@ -59,7 +59,8 @@ class Path:
 		self.lb.grid(row=0, column=0, padx=PAD, pady=PAD)
 		self.entry = tk.Entry(self.tab2, width=50)
 		self.entry.grid(row=0, column=1, padx=PAD, pady=PAD)
-		self.btn_add = tk.Button(text='Внести изменения')
+		self.btn_add = tk.Button(self.tab2, text='Внести изменения')
+		self.btn_add.grid(row=0, column=2, padx=PAD, pady=PAD)
 
 	def set_entry(self):
 		pass
