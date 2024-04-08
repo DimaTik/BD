@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 
-
 PAD = 5
 
 
@@ -14,17 +13,20 @@ class MainWindow:
 
 
 class Search:
-	HEADINGS = {'id': 'Номер', 'cost': 'Цена', 'age': 'Год'}
-	show = ['id', 'cost', 'age']
+	HEADINGS = {'name': 'Название', 'type': 'Тип', 'paster':'Пастеризация', 'filter':'Фильтрация', 'barcode':'Штрих-код', 'nach':'Начальный алкоголь', 'alc':'Алкоголь', 'carb':'Углеводы', 'prot':'Белки', 'kcal':'КилоКаллории', 'kjl':'КилоДжоули', 'vol':'Объем', 'ibu':'IBU', 'ebc':'EBC', 'manuf':'Производитель', 'link':'Ссылка'}
+	show = ['name', 'type', 'paster']
+	list = ('name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'kcal', 'kjl', 'vol', 'ibu', 'ebc', 'manuf', 'link')
 
 	def __init__(self, main):
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
-		self.find = tk.Entry(self.tab1)
-		self.find.grid(row=0, column=0, stick='w', padx=PAD, pady=PAD)
-		self.btn_find = tk.Button(self.tab1, text='Добавить')
-		self.btn_find.grid(row=0, column=1, stick='e', padx=PAD, pady=PAD)
-		self.table = ttk.Treeview(self.tab1, columns=self._reformat_column(), show='headings')
+		self.frm = tk.Frame(self.tab1)
+		self.frm.pack()
+		self.find = tk.Entry(self.frm)
+		self.find.grid(row=0, column=0, stick='w', pady=PAD)
+		self.btn_find = tk.Button(self.frm, text='Добавить', command=self._add_record)
+		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD)
+		self.table = ttk.Treeview(self.frm, columns=self._reformat_column(), show='headings')
 		self.table.grid(row=2, column=0, columnspan=2)
 		self._show_headings()
 
@@ -48,7 +50,25 @@ class Search:
 		region = self.table.identify('region', event.x, event.y)
 		if region == 'heading':
 			self.menu_table.post(event.x_root, event.y_root)
+
 	# Потом мейби напишешь штуку выбора строки
+
+	def _add_record(self):
+		self.list_entr = map(lambda i: 'entr_' + i, self.list)
+		self.list_txt = map(lambda i: 'txt_' + i, self.list)
+		self.root_rec = tk.Tk()
+		self.root_rec.resizable(False, False)
+		self.root_rec.title('Добавление данных')
+		self.root_rec.geometry('500x550')
+		for txt, entr, text, i in zip(self.list_txt, self.list_entr, self.list, range(len(self.list))):
+			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
+			self.txt.grid(sticky='w', column=0, row=i, padx=PAD, pady=PAD)
+			self.entr = tk.Entry(self.root_rec, width=50)
+			self.entr.grid(column=1, row=i, padx=PAD, pady=PAD)
+		self.btn_appl = tk.Button(self.root_rec, text='Подтвердить')
+		self.btn_appl.grid(column=1, row=len(self.list)*2+1, padx=PAD, pady=PAD)
+		# self.btn_canc = tk.Button(self.root_rec, text='Отмена')
+		# self.btn_canc.grid(column=1, row=len(self.list)*2+1, padx=PAD, pady=PAD)
 
 
 class Path:
