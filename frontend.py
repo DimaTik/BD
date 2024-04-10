@@ -13,22 +13,32 @@ class MainWindow:
 
 
 class Search:
-	HEADINGS = {'name': 'Название', 'type': 'Тип', 'paster':'Пастеризация', 'filter':'Фильтрация', 'barcode':'Штрих-код', 'nach':'Начальный алкоголь', 'alc':'Алкоголь', 'carb':'Углеводы', 'prot':'Белки', 'kcal':'КилоКаллории', 'kjl':'КилоДжоули', 'vol':'Объем', 'ibu':'IBU', 'ebc':'EBC', 'manuf':'Производитель', 'link':'Ссылка'}
+	HEADINGS = {'country': 'Страна', 'name': 'Название', 'type': 'Тип', 'paster': 'Пастеризация', 'filter': 'Фильтрация', 'barcode': 'Штрих-код', 'nach': 'Начальный алкоголь', 'alc': 'Алкоголь', 'carb': 'Углеводы', 'prot': 'Белки', 'kcal': 'КилоКаллории', 'kjl': 'КилоДжоули', 'vol': 'Объем', 'ibu': 'IBU', 'ebc': 'EBC', 'manuf': 'Производитель', 'link': 'Ссылка'}
 	show = ['name', 'type', 'paster']
-	list = ('name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'kcal', 'kjl', 'vol', 'ibu', 'ebc', 'manuf', 'link')
+	list = ('country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'kcal', 'kjl', 'vol', 'ibu', 'ebc', 'manuf', 'link')
+	country = ('Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия', 'Африка', 'Америка', 'Северная Америка', 'Россия')
 
 	def __init__(self, main):
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
-		self.frm = tk.Frame(self.tab1)
+		self.frm_main = tk.Frame(self.tab1)
+		self.frm_main.pack()
+		self.frm = tk.Frame(self.frm_main)
 		self.frm.pack()
 		self.find = tk.Entry(self.frm)
-		self.find.grid(row=0, column=0, stick='w', pady=PAD)
+		self.find.grid(row=0, column=0, stick='w', pady=PAD, padx=PAD)
 		self.btn_find = tk.Button(self.frm, text='Добавить', command=self._add_record)
-		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD)
-		self.table = ttk.Treeview(self.frm, columns=self._reformat_column(), show='headings')
-		self.table.grid(row=2, column=0, columnspan=2)
-		self._show_headings()
+		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD, padx=PAD)
+
+		self.pages_control = ttk.Notebook(self.frm)
+		for page in self.country:
+			self.page = ttk.Frame(self.pages_control)
+			self.pages_control.add(self.page, text=page)
+			self.table = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings')
+			self.table.grid(row=0, column=0)
+			self._show_headings()
+		self.pages_control.grid(columnspan=2)
+		# self.pages_control.pack(expand=1, fill=tk.BOTH)
 
 		self.menu_table = tk.Menu(self.table, tearoff=0)
 		self.menu_table.add_command(label='Добавить столбец')
@@ -54,12 +64,12 @@ class Search:
 	# Потом мейби напишешь штуку выбора строки
 
 	def _add_record(self):
-		self.list_entr = map(lambda i: 'entr_' + i, self.list)
-		self.list_txt = map(lambda i: 'txt_' + i, self.list)
+		self.list_entr = map(lambda x: 'entr_' + x, self.list)
+		self.list_txt = map(lambda x: 'txt_' + x, self.list)
 		self.root_rec = tk.Tk()
 		self.root_rec.resizable(False, False)
 		self.root_rec.title('Добавление данных')
-		self.root_rec.geometry('500x550')
+		self.root_rec.geometry('500x570')
 		for txt, entr, text, i in zip(self.list_txt, self.list_entr, self.list, range(len(self.list))):
 			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=0, row=i, padx=PAD, pady=PAD)
