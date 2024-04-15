@@ -5,10 +5,8 @@ import backend as bk
 
 
 if __name__ == '__main__':
-	root = tk.Tk()
-	root.title("Beer")
-	main_wind = fr.MainWindow(root)
+	main_wind = fr.MainWindow()
 	tab_search = fr.Search(main_wind.tab_control)
 	tab_path = fr.Path(main_wind.tab_control)
 	main_wind.pack()
-	root.mainloop()
+	main_wind.mainloop()
