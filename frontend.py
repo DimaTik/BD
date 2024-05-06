@@ -3,6 +3,10 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog as fl
 from PIL import Image, ImageTk
+from tkinter import messagebox as mb
+import backend as bk
+import threading as thr
+import time
 
 PAD = 5
 
@@ -34,7 +38,7 @@ class Search:
 		'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		'Африка', 'Америка', 'Северная Америка', 'Россия')
 
-	def __init__(self, main):
+	def create_window(self, main):
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
 		self.frm_main = tk.Frame(self.tab1)
@@ -43,7 +47,8 @@ class Search:
 		self.frm.pack()
 		self.find = tk.Entry(self.frm)
 		self.find.grid(row=0, column=0, stick='w', pady=PAD, padx=PAD)
-		self.btn_find = tk.Button(self.frm, text='Добавить', command=AddInfo)
+		self.add_info = AddInfo()
+		self.btn_find = tk.Button(self.frm, text='Добавить', command=self.add_info.create_window)
 		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD, padx=PAD)
 
 		self.pages_control = ttk.Notebook(self.frm)
@@ -54,7 +59,6 @@ class Search:
 			self.table.grid(row=0, column=0)
 			self._show_headings()
 		self.pages_control.grid(columnspan=2)
-		# self.pages_control.pack(expand=1, fill=tk.BOTH)
 
 		self.menu_table = tk.Menu(self.table, tearoff=0)
 		self.menu_table.add_command(label='Добавить столбец')
@@ -82,42 +86,96 @@ class Search:
 
 
 class AddInfo(Search):
-	def _dnd_image(self, event):
-		self.path = str(event.data[:-3]) + str(event.data[-3:]).lower()
-		if self.path[-3:] == 'jpg' or self.path[-3:] == 'png':
-			# print(os.path.abspath(self.path))
-			self.image = Image.open(os.path.abspath(self.path))
-			self.photo = ImageTk.PhotoImage(self.image)
-			self.entr_img.delete('all')
-			self.entr_img.create_image(10, 10, anchor='nw', image=self.photo)
+	# def _dnd_image(self, event):
+	# 	self.path = str(event.data[:-3]) + str(event.data[-3:]).lower()
+	# 	if self.path[-3:] == 'jpg' or self.path[-3:] == 'png':
+	# 		# print(os.path.abspath(self.path))
+	# 		self.image = Image.open(os.path.abspath(self.path))
+	# 		self.photo = ImageTk.PhotoImage(self.image)
+	# 		self.entr_img.delete('all')
+	# 		self.entr_img.create_image(10, 10, anchor='nw', image=self.photo)
+
+	data = []
+	data_flag = False
+	entr_get = []
+
+	def _change_flag(self):
+		self.data_flag = True
+		print('Я нажата')
+
+	def get_response_data(self):
+		while not self.data_flag:
+			print(self.data_flag)
+			time.sleep(0.001)
+		print('Еееее боооои')
 
 	def _find_image(self):
-		self.filepath = fl.askopenfilename()
-		if self.filepath[-3:] == 'jpg' or self.filepath[-3:] == 'png':
-			self.image = Image.open(os.path.abspath(self.filepath))
+		filepath = fl.askopenfilename()
+		if filepath[-3:] == 'jpg' or filepath[-3:] == 'png':
+			self.image = Image.open(os.path.abspath(filepath))
 			self.photo = ImageTk.PhotoImage(self.image)
 			self.entr_img.delete('all')
 			self.entr_img.create_image(0, 0, anchor='nw', image=self.photo)
 
-	def __init__(self):
+	def _format_data(self, arr):
+		arr = [None if i == '' else i for i in arr]
+		for i in range(2, 5):
+			arr[i].capitalize()
+		return arr
+
+	def _check(self, arr):
+		print(arr, end=' ')
+		print(' _check')
+		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное')
+		standart_bool = ('Да', 'Нет')
+		if arr[0] is None:
+			mb.showerror('Error', 'Вы не ввели название страны')
+		if arr[2] not in standart_type:
+			mb.showerror('Error', 'Неправильный формат поля "тип пива"')
+			return False
+		if arr[3] not in standart_bool:
+			mb.showerror('Error', 'Неправильный формат поля "пастеризация"')
+			return False
+		if arr[4] not in standart_bool:
+			mb.showerror('Error', 'Неправильный формат поля "фильтрация"')
+			return False
+		if arr[5] is not None:
+			if len(arr[5]) != 13 or len(arr[5]) != 8:
+				mb.showerror('Error', 'Неправильный формат поля "штрих-код"')
+				return False
+		return True
+
+	def get_data_from_entrances(self):
+		self.data = []					# Сохраняет оно все в строках поэтому давай так и оставим
+		for i in self.entr_get[:-1]:
+			self.data.append(i.get())
+		print(self.data)
+		self.data = self._format_data(self.data)
+		if self._check(self.data):
+			self.data_flag = False
+			self.root_rec.destroy()
+			return tuple(self.data)
+
+	def create_window(self, **kwargs):
 		self.root_rec = tk.Toplevel()
 		self.root_rec.resizable(False, False)
 		self.root_rec.title('Добавление данных')
-		self.root_rec.geometry(f'1000x900')
+		self.root_rec.geometry('1000x900')
+		self.entr_get = []
 		self.list_entr = list(map(lambda x: 'entr_' + x, self.list[:-2]))
 		self.list_txt = list(map(lambda x: 'txt_' + x, self.list[:-2]))
 		self.part_len = int(len(self.list_txt) / 2)
-		for txt, entr, text, i in zip(self.list_txt[:self.part_len], self.list_entr[:self.part_len],
-									  self.list[:self.part_len], range(self.part_len)):
+		for text, i in zip(self.list[:self.part_len], range(self.part_len)):
 			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=0, row=i, padx=PAD, pady=PAD)
 			self.entr = tk.Entry(self.root_rec, width=50)
+			self.entr_get.append(self.entr)
 			self.entr.grid(column=1, row=i, padx=PAD, pady=PAD)
-		for txt, entr, text, i in zip(self.list_txt[self.part_len:], self.list_entr[self.part_len:],
-									  self.list[self.part_len:], range(self.part_len)):
+		for text, i in zip(self.list[self.part_len:], range(self.part_len)):
 			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=2, row=i, padx=PAD, pady=PAD)
 			self.entr = tk.Entry(self.root_rec, width=50)
+			self.entr_get.append(self.entr)
 			self.entr.grid(column=3, row=i, padx=PAD, pady=PAD)
 		self.txt_link = tk.Label(self.root_rec, text='Ссылка')
 		self.txt_link.grid(sticky='w', column=0, padx=PAD, pady=PAD)
@@ -129,14 +187,12 @@ class AddInfo(Search):
 		self.entr_img.grid(column=1, row=len(self.list) * 2, columnspan=3, padx=PAD, pady=PAD)
 		self.btn_img = tk.Button(self.root_rec, text='Добавить', command=self._find_image)
 		self.btn_img.grid(row=len(self.list) * 2, column=3, sticky='e')
-		self.btn_appl = tk.Button(self.root_rec, text='Подтвердить')
+		self.btn_appl = tk.Button(self.root_rec, text='Подтвердить', command=self._change_flag)
 		self.btn_appl.grid(column=1, row=len(self.list) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
 
 
-
-
 class Path:
-	def __init__(self, main):
+	def create_window(self, main):
 		self.tab2 = ttk.Frame(main)
 		main.add(self.tab2, text='Path')
 		self.lb = tk.Label(self.tab2, text='Вставьте путь расположения файла БД')
@@ -146,5 +202,5 @@ class Path:
 		self.btn_add = tk.Button(self.tab2, text='Внести изменения')
 		self.btn_add.grid(row=0, column=2, padx=PAD, pady=PAD)
 
-	def set_entry(self):
+	def set_path(self):
 		pass
