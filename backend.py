@@ -27,6 +27,17 @@ with sq.connect('db.db') as con:
 
 
 class Data:
+	columns = (
+		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
+		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
+
+	def column(self, arr):
+		temp = []
+		for i in range(len(arr[1:])):
+			if arr[i]:
+				temp.append(self.columns[i])
+		return tuple(temp)
+
 	def set_data(self, arr):
 		with sq.connect('db.db') as self.con:
 			self.cur = con.cursor()

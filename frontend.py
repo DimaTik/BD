@@ -16,6 +16,7 @@ class MainWindow:
 		self.root = tk.Tk()
 		self.root.title("Beer")
 		self.tab_control = ttk.Notebook(self.root)
+		self.search_tab = Search(self.tab_control)
 
 	def pack(self):
 		self.tab_control.pack(expand=1, fill=tk.BOTH)
@@ -30,15 +31,17 @@ class Search:
 				'carb': 'Углеводы', 'prot': 'Белки', 'fat': 'Жиры', 'kcal': 'КилоКаллории', 'kjl': 'КилоДжоули',
 				'vol': 'Объем', 'ibu': 'IBU', 'ebc': 'EBC', 'container': 'Тара', 'manuf': 'Производитель',
 				'link': 'Ссылка', 'image': 'Скан'}
-	show = ['name', 'type', 'paster']
-	list = (
+	CONFIG_OF_BEER = (
 		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
-	country = (
-		'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
-		'Африка', 'Америка', 'Северная Америка', 'Россия')
 
-	def create_window(self, main):
+	def __init__(self, main):
+		self.country = (
+			'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
+			'Африка', 'Америка', 'Северная Америка', 'Россия')
+		self.wind_flag = False
+		self.show = ['name', 'type', 'paster']
+
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
 		self.frm_main = tk.Frame(self.tab1)
@@ -47,8 +50,7 @@ class Search:
 		self.frm.pack()
 		self.find = tk.Entry(self.frm)
 		self.find.grid(row=0, column=0, stick='w', pady=PAD, padx=PAD)
-		self.add_info = AddInfo()
-		self.btn_find = tk.Button(self.frm, text='Добавить', command=self.add_info.create_window)
+		self.btn_find = tk.Button(self.frm, text='Добавить', command=self._change_flag)
 		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD, padx=PAD)
 
 		self.pages_control = ttk.Notebook(self.frm)
@@ -81,6 +83,12 @@ class Search:
 		if region == 'heading':
 			self.menu_table.post(event.x_root, event.y_root)
 
+	def _change_flag(self):
+		self.wind_flag = True
+
+	def get_response_create_window(self):
+		while not self.wind_flag:
+			time.sleep(0.001)
 
 # Потом мейби напишешь штуку выбора строки
 
@@ -95,19 +103,12 @@ class AddInfo(Search):
 	# 		self.entr_img.delete('all')
 	# 		self.entr_img.create_image(10, 10, anchor='nw', image=self.photo)
 
-	data = []
-	data_flag = False
-	entr_get = []
-
 	def _change_flag(self):
 		self.data_flag = True
-		print('Я нажата')
 
 	def get_response_data(self):
 		while not self.data_flag:
-			print(self.data_flag)
 			time.sleep(0.001)
-		print('Еееее боооои')
 
 	def _find_image(self):
 		filepath = fl.askopenfilename()
@@ -120,14 +121,15 @@ class AddInfo(Search):
 	def _format_data(self, arr):
 		arr = [None if i == '' else i for i in arr]
 		for i in range(2, 5):
-			arr[i].capitalize()
+			if arr[i]:
+				arr[i].capitalize()
 		return arr
 
 	def _check(self, arr):
 		print(arr, end=' ')
 		print(' _check')
-		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное')
-		standart_bool = ('Да', 'Нет')
+		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное', None)
+		standart_bool = ('Да', 'Нет', None)
 		if arr[0] is None:
 			mb.showerror('Error', 'Вы не ввели название страны')
 		if arr[2] not in standart_type:
@@ -146,53 +148,54 @@ class AddInfo(Search):
 		return True
 
 	def get_data_from_entrances(self):
-		self.data = []					# Сохраняет оно все в строках поэтому давай так и оставим
+		data = []					# Сохраняет оно все в строках поэтому давай так и оставим
 		for i in self.entr_get[:-1]:
-			self.data.append(i.get())
-		print(self.data)
-		self.data = self._format_data(self.data)
-		if self._check(self.data):
+			data.append(i.get())
+		data.append(self.entr_link.get())
+		data.append(self.image)
+		print(data)
+		data = self._format_data(data)
+		if self._check(data):
 			self.data_flag = False
-			self.root_rec.destroy()
-			return tuple(self.data)
+			self.root_add.destroy()
+			return tuple(data)
 
-	def create_window(self, **kwargs):
-		self.root_rec = tk.Toplevel()
-		self.root_rec.resizable(False, False)
-		self.root_rec.title('Добавление данных')
-		self.root_rec.geometry('1000x900')
+	def __init__(self):
+		self.data_flag = False
+		self.root_add = tk.Toplevel()
+		self.root_add.resizable(False, False)
+		self.root_add.title('Добавление данных')
+		self.root_add.geometry('1000x815')
 		self.entr_get = []
-		self.list_entr = list(map(lambda x: 'entr_' + x, self.list[:-2]))
-		self.list_txt = list(map(lambda x: 'txt_' + x, self.list[:-2]))
-		self.part_len = int(len(self.list_txt) / 2)
-		for text, i in zip(self.list[:self.part_len], range(self.part_len)):
-			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
+		self.part_len = int(len(self.CONFIG_OF_BEER[:-2]) / 2)
+		for text, i in zip(self.CONFIG_OF_BEER[:self.part_len], range(self.part_len)):
+			self.txt = tk.Label(self.root_add, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=0, row=i, padx=PAD, pady=PAD)
-			self.entr = tk.Entry(self.root_rec, width=50)
+			self.entr = tk.Entry(self.root_add, width=50)
 			self.entr_get.append(self.entr)
 			self.entr.grid(column=1, row=i, padx=PAD, pady=PAD)
-		for text, i in zip(self.list[self.part_len:], range(self.part_len)):
-			self.txt = tk.Label(self.root_rec, text=f'{self.HEADINGS[text]}')
+		for text, i in zip(self.CONFIG_OF_BEER[self.part_len:], range(self.part_len)):
+			self.txt = tk.Label(self.root_add, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=2, row=i, padx=PAD, pady=PAD)
-			self.entr = tk.Entry(self.root_rec, width=50)
+			self.entr = tk.Entry(self.root_add, width=50)
 			self.entr_get.append(self.entr)
 			self.entr.grid(column=3, row=i, padx=PAD, pady=PAD)
-		self.txt_link = tk.Label(self.root_rec, text='Ссылка')
+		self.txt_link = tk.Label(self.root_add, text='Ссылка')
 		self.txt_link.grid(sticky='w', column=0, padx=PAD, pady=PAD)
-		self.entr_link = tk.Entry(self.root_rec, width=120)
+		self.entr_link = tk.Entry(self.root_add, width=120)
 		self.entr_link.grid(column=1, columnspan=3, row=self.txt_link.grid_info()['row'], padx=PAD, pady=PAD)
-		self.txt_img = tk.Label(self.root_rec, text='Скан')
-		self.txt_img.grid(sticky='e', row=len(self.list) * 2, padx=PAD, pady=PAD)
-		self.entr_img = tk.Canvas(self.root_rec, bg='white', width=530, height=512)
-		self.entr_img.grid(column=1, row=len(self.list) * 2, columnspan=3, padx=PAD, pady=PAD)
-		self.btn_img = tk.Button(self.root_rec, text='Добавить', command=self._find_image)
-		self.btn_img.grid(row=len(self.list) * 2, column=3, sticky='e')
-		self.btn_appl = tk.Button(self.root_rec, text='Подтвердить', command=self._change_flag)
-		self.btn_appl.grid(column=1, row=len(self.list) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
+		self.txt_img = tk.Label(self.root_add, text='Скан')
+		self.txt_img.grid(sticky='e', row=len(self.CONFIG_OF_BEER) * 2, padx=PAD, pady=PAD)
+		self.entr_img = tk.Canvas(self.root_add, bg='white', width=450, height=450)
+		self.entr_img.grid(column=1, row=len(self.CONFIG_OF_BEER) * 2, columnspan=3, padx=PAD, pady=PAD)
+		self.btn_img = tk.Button(self.root_add, text='Добавить', command=self._find_image)
+		self.btn_img.grid(row=len(self.CONFIG_OF_BEER) * 2, column=3, sticky='e')
+		self.btn_appl = tk.Button(self.root_add, text='Подтвердить', command=self._change_flag)
+		self.btn_appl.grid(column=1, row=len(self.CONFIG_OF_BEER) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
 
 
 class Path:
-	def create_window(self, main):
+	def __init__(self, main):
 		self.tab2 = ttk.Frame(main)
 		main.add(self.tab2, text='Path')
 		self.lb = tk.Label(self.tab2, text='Вставьте путь расположения файла БД')
