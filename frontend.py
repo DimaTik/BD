@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog as fl
+from tkinter import filedialog as fd
 from PIL import Image, ImageTk
 from tkinter import messagebox as mb
 import backend as bk
@@ -90,6 +90,10 @@ class Search:
 		while not self.wind_flag:
 			time.sleep(0.001)
 
+	# def close_window(self):
+	# 	self.wind_flag = False
+	# 	self.tab1.destroy()
+
 # Потом мейби напишешь штуку выбора строки
 
 
@@ -103,65 +107,9 @@ class AddInfo(Search):
 	# 		self.entr_img.delete('all')
 	# 		self.entr_img.create_image(10, 10, anchor='nw', image=self.photo)
 
-	def _change_flag(self):
-		self.data_flag = True
-
-	def get_response_data(self):
-		while not self.data_flag:
-			time.sleep(0.001)
-
-	def _find_image(self):
-		filepath = fl.askopenfilename()
-		if filepath[-3:] == 'jpg' or filepath[-3:] == 'png':
-			self.image = Image.open(os.path.abspath(filepath))
-			self.photo = ImageTk.PhotoImage(self.image)
-			self.entr_img.delete('all')
-			self.entr_img.create_image(0, 0, anchor='nw', image=self.photo)
-
-	def _format_data(self, arr):
-		arr = [None if i == '' else i for i in arr]
-		for i in range(2, 5):
-			if arr[i]:
-				arr[i].capitalize()
-		return arr
-
-	def _check(self, arr):
-		print(arr, end=' ')
-		print(' _check')
-		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное', None)
-		standart_bool = ('Да', 'Нет', None)
-		if arr[0] is None:
-			mb.showerror('Error', 'Вы не ввели название страны')
-		if arr[2] not in standart_type:
-			mb.showerror('Error', 'Неправильный формат поля "тип пива"')
-			return False
-		if arr[3] not in standart_bool:
-			mb.showerror('Error', 'Неправильный формат поля "пастеризация"')
-			return False
-		if arr[4] not in standart_bool:
-			mb.showerror('Error', 'Неправильный формат поля "фильтрация"')
-			return False
-		if arr[5] is not None:
-			if len(arr[5]) != 13 or len(arr[5]) != 8:
-				mb.showerror('Error', 'Неправильный формат поля "штрих-код"')
-				return False
-		return True
-
-	def get_data_from_entrances(self):
-		data = []					# Сохраняет оно все в строках поэтому давай так и оставим
-		for i in self.entr_get[:-1]:
-			data.append(i.get())
-		data.append(self.entr_link.get())
-		data.append(self.image)
-		print(data)
-		data = self._format_data(data)
-		if self._check(data):
-			self.data_flag = False
-			self.root_add.destroy()
-			return tuple(data)
-
 	def __init__(self):
 		self.data_flag = False
+		self.image = None
 		self.root_add = tk.Toplevel()
 		self.root_add.resizable(False, False)
 		self.root_add.title('Добавление данных')
@@ -192,6 +140,86 @@ class AddInfo(Search):
 		self.btn_img.grid(row=len(self.CONFIG_OF_BEER) * 2, column=3, sticky='e')
 		self.btn_appl = tk.Button(self.root_add, text='Подтвердить', command=self._change_flag)
 		self.btn_appl.grid(column=1, row=len(self.CONFIG_OF_BEER) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
+
+		# self.root_add.protocol('WM_DELETE_WINDOW', self._close_window)
+
+	def _change_flag(self):
+		self.data_flag = True
+
+	def get_response_data(self):
+		while not self.data_flag:
+			time.sleep(0.001)
+
+	def _find_image(self):
+		filepath = fd.askopenfilename()
+		if filepath[-3:] == 'jpg' or filepath[-3:] == 'png':
+			self.image = Image.open(os.path.abspath(filepath))
+			photo = ImageTk.PhotoImage(self.image)
+			self.entr_img.delete('all')
+			self.entr_img.create_image(0, 0, anchor='nw', image=photo)
+
+	def _format_data(self, arr):
+		# arr = [None if i == '' else i for i in arr]
+		for i in range(len(arr)):
+			if arr[i] != '':
+				arr[i] = arr[i].strip(' ')
+
+		for i in range(2, 5):
+			if arr[i]:
+				arr[i] = arr[i].capitalize()
+		return arr
+
+	def _check(self, arr):
+		print(arr, end=' ')
+		print(' _check')
+		standart_contry = ('Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
+			'Африка', 'Америка', 'Северная Америка', 'Россия')
+		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное', '')
+		standart_bool = ('Да', 'Нет', '')
+		if arr[0] == '':
+			mb.showerror('Error', 'Вы не ввели название страны')
+		if arr[0] not in standart_contry:
+			mb.showerror('Error', 'Такой страны нет в списке или проверьте опечатки')
+		if arr[2] not in standart_type:
+			mb.showerror('Error', 'Неправильный формат поля "тип пива"')
+			return False
+		if arr[3] not in standart_bool:
+			mb.showerror('Error', 'Неправильный формат поля "пастеризация"')
+			return False
+		if arr[4] not in standart_bool:
+			mb.showerror('Error', 'Неправильный формат поля "фильтрация"')
+			return False
+		if arr[5] != '':
+			if len(arr[5]) != 13 or len(arr[5]) != 8:
+				mb.showerror('Error', 'Неправильный формат поля "штрих-код"')
+				return False
+		return True
+
+	def get_data_from_entrances(self):
+		data = []					# Сохраняет оно все в строках поэтому давай так и оставим
+		for i in self.entr_get[:-1]:
+			data.append(i.get())
+		data = self._format_data(data)
+
+		if self.entr_link.get() != '':
+			data.append(self.entr_link.get())
+		else:
+			data.append('')
+
+		if self.image is not None:
+			data.append(self.image)
+		else:
+			data.append('')
+
+		print(data)
+		if self._check(data):
+			self.wind_flag = False
+			self.data_flag = False
+			return tuple(data)
+
+	# def _close_window(self):
+	# 	self.wind_flag = False
+	# 	self.root_add.destroy()
 
 
 class Path:

@@ -4,7 +4,6 @@ with sq.connect('db.db') as con:
 	cur = con.cursor()
 	cur.execute("""CREATE TABLE IF NOT EXISTS Германия(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		country TEXT,
 		name TEXT,
 		type TEXT,
 		paster TEXT,
@@ -31,25 +30,35 @@ class Data:
 		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
-	def column(self, arr):
+	def _column(self, arr):
 		temp = []
-		for i in range(len(arr[1:])):
+		for i in range(1, len(arr)):
 			if arr[i]:
 				temp.append(self.columns[i])
 		return tuple(temp)
 
-	def set_data(self, arr):
-		with sq.connect('db.db') as self.con:
-			self.cur = con.cursor()
-			self.cur.execute(f'''INSERT {arr[0]} VALUES {arr[1:]}''')
-		print('write data')
+	def _to_string(self, arr):
+		temp = []
+		for i in arr[1:]:
+			if i != '':
+				temp.append(i)
+		string = '' ''.join(temp)
+		return string
 
-	def show(self):
-		with sq.connect('db.db') as self.con:
-			self.cur = con.cursor()
-			self.arr = self.cur.execute('''SELECT * FROM Германия''')
-			self.arr = self.cur.fetchall()
-			return self.arr
+	def set_data(self, arr):
+		col = self._column(arr)
+		write_arr = self._to_string(arr)
+		print(write_arr)
+		with sq.connect('db.db', check_same_thread=False) as con:
+			cur = con.cursor()
+			cur.execute(f"INSERT INTO {arr[0]} ({col}) VALUES({write_arr})")
+		print('write data finish')
+
+	def get_data(self):
+		with sq.connect('db.db', check_same_thread=False) as con:
+			cur = con.cursor()
+			arr = cur.execute("SELECT * FROM Германия").fetchall()
+			return arr
 
 	# def _get_types(self):
 	# 	self.list = []

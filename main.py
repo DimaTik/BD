@@ -18,6 +18,5 @@ if __name__ == '__main__':
 	main_wind = gui.MainWindow()
 	main_wind.pack()
 	data = bk.Data()
-	thread = thr.Thread(target=get_set_data, daemon=True)
-	thread.start()
+	thread = thr.Thread(target=get_set_data, daemon=True).start()
 	main_wind.mainloop()
