@@ -35,23 +35,35 @@ class Data:
 		for i in range(1, len(arr)):
 			if arr[i]:
 				temp.append(self.columns[i])
-		return tuple(temp)
+		if len(temp) > 1:
+			return tuple(temp)
+		else:
+			return f"('{temp[0]}')"
 
-	def _to_string(self, arr):
+			# INSERT INTO Германия (name) VALUES(чдмщш2й) !!!!!!!!!!!!!
+
+	def _format_array(self, arr):
 		temp = []
 		for i in arr[1:]:
 			if i != '':
 				temp.append(i)
-		string = '' ''.join(temp)
-		return string
+		if len(temp) > 1:
+			return tuple(temp)
+		else:
+			return f"('{temp[0]}')"
+
+	# А че мы просто не записываем массив с пустотой?
 
 	def set_data(self, arr):
-		col = self._column(arr)
-		write_arr = self._to_string(arr)
-		print(write_arr)
+		col = str(self._column(arr))
+		# print(col)
+		write_arr = self._format_array(arr)
+		# print(write_arr)
+		response = f"INSERT INTO {arr[0]} {col} VALUES{write_arr}"
+		# print(response)
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
-			cur.execute(f"INSERT INTO {arr[0]} ({col}) VALUES({write_arr})")
+			cur.execute(response)
 		print('write data finish')
 
 	def get_data(self):
@@ -59,13 +71,3 @@ class Data:
 			cur = con.cursor()
 			arr = cur.execute("SELECT * FROM Германия").fetchall()
 			return arr
-
-	# def _get_types(self):
-	# 	self.list = []
-	# 	with sq.connect('BD.db') as self.con:
-	# 		self.cur = con.cursor()
-	# 		self.temp = self.cur.execute('''PRAGMA table_info('Germany')''')
-	# 		self.temp = self.cur.fetchall()
-	# 		for i in range(len(self.temp)):
-	# 			self.list.append(self.temp[i][2])
-	# 		return self.list

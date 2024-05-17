@@ -89,6 +89,7 @@ class Search:
 	def get_response_create_window(self):
 		while not self.wind_flag:
 			time.sleep(0.001)
+		self.wind_flag = False
 
 	# def close_window(self):
 	# 	self.wind_flag = False
@@ -216,11 +217,6 @@ class AddInfo(Search):
 			self.wind_flag = False
 			self.data_flag = False
 			return tuple(data)
-
-	# def _close_window(self):
-	# 	self.wind_flag = False
-	# 	self.root_add.destroy()
-
 
 class Path:
 	def __init__(self, main):
