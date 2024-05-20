@@ -1,4 +1,5 @@
 import sqlite3 as sq
+import time
 
 with sq.connect('db.db') as con:
 	cur = con.cursor()
@@ -12,6 +13,7 @@ with sq.connect('db.db') as con:
 		nach TEXT,
 		alc TEXT,
 		carb TEXT,
+		prot TEXT,
 		fat TEXT,
 		kcal TEXT,
 		kjl TEXT,
@@ -30,6 +32,9 @@ class Data:
 		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
+	def __init__(self):
+		self.flag_successful = False
+
 	def _column(self, arr):
 		temp = []
 		for i in range(1, len(arr)):
@@ -39,8 +44,6 @@ class Data:
 			return tuple(temp)
 		else:
 			return f"('{temp[0]}')"
-
-			# INSERT INTO Германия (name) VALUES(чдмщш2й) !!!!!!!!!!!!!
 
 	def _format_array(self, arr):
 		temp = []
@@ -52,22 +55,35 @@ class Data:
 		else:
 			return f"('{temp[0]}')"
 
+	def _vol_of_val(self, arr):
+		temp = ''
+		for i in range(len(arr)):
+			temp += '?,'
+		return temp[:-1]
+
 	# А че мы просто не записываем массив с пустотой?
 
 	def set_data(self, arr):
+		print(arr[19])
 		col = str(self._column(arr))
-		# print(col)
+		print(col)
 		write_arr = self._format_array(arr)
-		# print(write_arr)
-		response = f"INSERT INTO {arr[0]} {col} VALUES{write_arr}"
-		# print(response)
+		print(write_arr)
+		response = f"INSERT INTO {arr[0]} {col} VALUES({self._vol_of_val(write_arr)})"
+		print(response)
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
-			cur.execute(response)
+			cur.execute(response, write_arr)
+		self.flag_successful = True
 		print('write data finish')
 
-	def get_data(self):
+	def get_data(self): 	# Вот это пишем
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
-			arr = cur.execute("SELECT * FROM Германия").fetchall()
+			arr = cur.execute("SELECT * FROM ...").fetchall()
 			return arr
+
+	def get_response_successful(self):
+		while not self.flag_successful:
+			time.sleep(0.001)
+		self.flag_successful = False

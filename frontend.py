@@ -158,9 +158,11 @@ class AddInfo(Search):
 			photo = ImageTk.PhotoImage(self.image)
 			self.entr_img.delete('all')
 			self.entr_img.create_image(0, 0, anchor='nw', image=photo)
+			with open(os.path.abspath(filepath), 'rb') as f:
+				self.image = f.read()
+
 
 	def _format_data(self, arr):
-		# arr = [None if i == '' else i for i in arr]
 		for i in range(len(arr)):
 			if arr[i] != '':
 				arr[i] = arr[i].strip(' ')
@@ -179,8 +181,10 @@ class AddInfo(Search):
 		standart_bool = ('Да', 'Нет', '')
 		if arr[0] == '':
 			mb.showerror('Error', 'Вы не ввели название страны')
+			return False
 		if arr[0] not in standart_contry:
 			mb.showerror('Error', 'Такой страны нет в списке или проверьте опечатки')
+			return False
 		if arr[2] not in standart_type:
 			mb.showerror('Error', 'Неправильный формат поля "тип пива"')
 			return False
@@ -196,27 +200,34 @@ class AddInfo(Search):
 				return False
 		return True
 
-	def get_data_from_entrances(self):
-		data = []					# Сохраняет оно все в строках поэтому давай так и оставим
-		for i in self.entr_get[:-1]:
+	def _get_user_values(self):
+		data = []
+		for i in self.entr_get:
 			data.append(i.get())
+		data.append(self.entr_link.get())
 		data = self._format_data(data)
-
-		if self.entr_link.get() != '':
-			data.append(self.entr_link.get())
-		else:
-			data.append('')
-
 		if self.image is not None:
 			data.append(self.image)
 		else:
 			data.append('')
+		return data
 
-		print(data)
-		if self._check(data):
-			self.wind_flag = False
-			self.data_flag = False
-			return tuple(data)
+	def get_data(self):
+		temp = self._get_user_values()
+		while True:
+			if self._check(temp):
+				return tuple(temp)
+			else:
+				self.data_flag = False
+				self.get_response_data()
+				temp = self._get_user_values()
+
+	def show_successful_window(self):
+		mb.showinfo('Successful', 'Данные записаны')
+
+	# def _close_window(self):
+	# 	self.root_add.destroy()
+
 
 class Path:
 	def __init__(self, main):
