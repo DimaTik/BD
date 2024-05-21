@@ -3,7 +3,7 @@ import time
 
 with sq.connect('db.db') as con:
 	cur = con.cursor()
-	cur.execute("""CREATE TABLE IF NOT EXISTS Германия(
+	cur.execute("""CREATE TABLE IF NOT EXISTS Чехия_и_Словакия(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT,
 		type TEXT,
@@ -32,8 +32,8 @@ class Data:
 		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
-	def __init__(self):
-		self.flag_successful = False
+	# def __init__(self):
+	# 	self.flag_successful = False
 
 	def _column(self, arr):
 		temp = []
@@ -61,29 +61,33 @@ class Data:
 			temp += '?,'
 		return temp[:-1]
 
+	# def _gap_spaces(self, string):
+	# 	return string.replace(' ', '_')
+
 	# А че мы просто не записываем массив с пустотой?
 
 	def set_data(self, arr):
-		print(arr[19])
 		col = str(self._column(arr))
 		print(col)
 		write_arr = self._format_array(arr)
 		print(write_arr)
+		# name = self._gap_spaces(arr[0])
+		# print(name)
 		response = f"INSERT INTO {arr[0]} {col} VALUES({self._vol_of_val(write_arr)})"
 		print(response)
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
 			cur.execute(response, write_arr)
-		self.flag_successful = True
+		# self.flag_successful = True
 		print('write data finish')
 
-	def get_data(self): 	# Вот это пишем
+	def get_data(self, country):
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
-			arr = cur.execute("SELECT * FROM ...").fetchall()
-			return arr
+			arr = cur.execute(f"SELECT * FROM {country}").fetchall()
+			return tuple(arr)
 
-	def get_response_successful(self):
-		while not self.flag_successful:
-			time.sleep(0.001)
-		self.flag_successful = False
+	# def get_response_successful(self):
+	# 	while not self.flag_successful:
+	# 		time.sleep(0.001)
+	# 	self.flag_successful = False
