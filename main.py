@@ -12,7 +12,6 @@ def get_set_data():
 		add_wind = gui.AddInfo()
 		add_wind.get_response_data()
 		data.set_data(add_wind.get_data())
-		# data.get_response_successful()
 		add_wind.show_successful_window()
 
 
@@ -21,7 +20,6 @@ if __name__ == '__main__':
 	main_wind.pack()
 	data = bk.Data()
 	for i in main_wind.search_tab.countries_list:
-		main_wind.search_tab.set_data_for_show(data.get_data(i), i) 	# И вот тут эта бяка с доступом к классу
-	# Либо здесь сделать for по итерации и в data и gui обращаться по индексу к общему массива из main
+		main_wind.search_tab.set_data_for_show(data.get_data(i), i)
 	thread_add_data = thr.Thread(target=get_set_data, daemon=True).start()
 	main_wind.mainloop()

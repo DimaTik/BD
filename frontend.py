@@ -39,12 +39,12 @@ class Search:
 		# self.countries = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
-		self.countries_list = ('Германия', 'Бельгия', 'Чехия_и_Словакия')
+		self.countries_list = ('Германия',)
 		self.pages_of_countries = {}
 		self.wind_flag = False
-		# self.list_pages_country_columns = []
 		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
+		self.len_col = []
 
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
@@ -62,12 +62,13 @@ class Search:
 			name = self._convert_name_for_show(i)
 			self.page = ttk.Frame(self.pages_control)
 			self.pages_control.add(self.page, text=name)
-			self.table = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings')
+			self.treeScroll = ttk.Scrollbar(self.page)
+			self.treeScroll.pack(side="right", fill="y")
+			self.table = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings', yscrollcommand=self.treeScroll.set)
+			self.treeScroll.config(command=self.table.yview)
 			self.pages_of_countries[i] = self.table
-			self.scroll = ttk.Scrollbar(self.table, orient=tk.VERTICAL, command=self.table.yview)
-			self.table.configure(yscroll=self.scroll.set)
-			self.table.grid(row=0, column=0)
 			self._show_headings()
+			self.table.pack()
 		self.pages_control.grid(columnspan=2)
 
 		self.menu_table = tk.Menu(self.table, tearoff=0)
@@ -90,21 +91,35 @@ class Search:
 
 	def _show_headings(self):
 		for i in self.show:
-			width = len(self.HEADINGS[i]) * 7 + 20
+			width = len(self.HEADINGS[i]) * 7 + 20 	# Вот это крч не работает, надо перписать тк данные не влизают
+			self.len_col.append(width)
 			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
-			self.table.column(i, width=width)
+			# self.table.column(i, width=width)
 
-	def _format_string_of_data(self, arr):
-		temp = [i for i in arr]
+	def _format_data_for_show(self, arr):
+		temp = [i for i in arr[:-1]]
+		if isinstance(arr[-1], bytes):
+			temp.append('Открыть изображение')
 		for i in range(len(temp)):
 			if temp[i] is None:
 				temp[i] = ' '
 		return temp
 
-	def set_data_for_show(self, data, country): 	# Если что, вот здесь могут быть проблемы из-за namedtuple
-		for string_of_data in data: 	# И вообще херня какая-то
-			string_of_data = self._format_string_of_data(string_of_data)
+	def _view_image(self, byte_image):
+		pass
+
+	def set_data_for_show(self, data, country):
+		print(self.len_col)
+		for string_of_data in data:
+			string_of_data = self._format_data_for_show(string_of_data)
 			self.pages_of_countries[country].insert('', tk.END, values=string_of_data)
+			for j in range(1, len(string_of_data)):
+				length_column = len(string_of_data[j]) * 7 + 20
+				if length_column > self.len_col[j]:
+					self.len_col[j] = length_column
+		print(self.len_col)
+		for i in range(len(self.show)):
+			self.table.column(self.show[i], width=self.len_col[i], anchor='center')
 
 	def _show_menu(self, event):
 		region = self.table.identify('region', event.x, event.y)
@@ -122,12 +137,6 @@ class Search:
 	def _convert_name_for_show(self, string):
 		return string.replace('_', ' ')
 
-	# def _create_dictionary(self, arr):
-	# 	temp = {}
-	# 	for i in arr:
-	# 		temp[i] =
-	# 	return temp
-
 	# def close_window(self):
 	# 	self.wind_flag = False
 	# 	self.tab1.destroy()
@@ -136,15 +145,6 @@ class Search:
 
 
 class AddInfo(Search):
-	# def _dnd_image(self, event):
-	# 	self.path = str(event.data[:-3]) + str(event.data[-3:]).lower()
-	# 	if self.path[-3:] == 'jpg' or self.path[-3:] == 'png':
-	# 		# print(os.path.abspath(self.path))
-	# 		self.image = Image.open(os.path.abspath(self.path))
-	# 		self.photo = ImageTk.PhotoImage(self.image)
-	# 		self.entr_img.delete('all')
-	# 		self.entr_img.create_image(10, 10, anchor='nw', image=self.photo)
-
 	def __init__(self):
 		self.data_flag = False
 		self.image = None
