@@ -12,7 +12,8 @@ def get_set_data():
 		add_wind = gui.AddInfo()
 		add_wind.get_response_data()
 		data.set_data(add_wind.get_data())
-		add_wind.show_successful_window()
+		if data.get_successful_flag():
+			add_wind.show_successful_window()
 
 
 if __name__ == '__main__':

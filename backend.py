@@ -3,7 +3,7 @@ import time
 
 with sq.connect('db.db') as con:
 	cur = con.cursor()
-	cur.execute("""CREATE TABLE IF NOT EXISTS Чехия_и_Словакия(
+	cur.execute("""CREATE TABLE IF NOT EXISTS Германия(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT,
 		type TEXT,
@@ -32,6 +32,9 @@ class Data:
 		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
+	def __init__(self):
+		self.successful_flag = False
+
 	def _column(self, arr):
 		temp = []
 		for i in range(1, len(arr)):
@@ -59,19 +62,24 @@ class Data:
 		return temp[:-1]
 
 	def set_data(self, arr):
-		col = str(self._column(arr))
-		print(col)
-		write_arr = self._format_array(arr)
-		print(write_arr)
-		response = f"INSERT INTO {arr[0]} {col} VALUES({self._vol_of_val(write_arr)})"
-		print(response)
-		with sq.connect('db.db', check_same_thread=False) as con:
-			cur = con.cursor()
-			cur.execute(response, write_arr)
-		print('write data finish')
+		if arr is not None:
+			col = str(self._column(arr))
+			print(col)
+			write_arr = self._format_array(arr)
+			print(write_arr)
+			response = f"INSERT INTO {arr[0]} {col} VALUES({self._vol_of_val(write_arr)})"
+			print(response)
+			with sq.connect('db.db', check_same_thread=False) as con:
+				cur = con.cursor()
+				cur.execute(response, write_arr)
+			self.successful_flag = True
+			print('write data finish')
 
 	def get_data(self, country):
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
 			arr = cur.execute(f"SELECT * FROM {country}").fetchall()
 			return tuple(arr)
+
+	def get_successful_flag(self):
+		return self.successful_flag

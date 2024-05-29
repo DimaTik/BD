@@ -26,14 +26,11 @@ class MainWindow:
 
 
 class Search:
-	HEADINGS = {'id': 'Номер', 'name': 'Название', 'type': 'Тип', 'paster': 'Пастеризация',
+	HEADINGS = {'id': 'Номер', 'country': 'Страна', 'name': 'Название', 'type': 'Тип', 'paster': 'Пастеризация',
 				'filter': 'Фильтрация', 'barcode': 'Штрих-код', 'nach': 'Начальный алкоголь', 'alc': 'Алкоголь',
 				'carb': 'Углеводы', 'prot': 'Белки', 'fat': 'Жиры', 'kcal': 'КилоКаллории', 'kjl': 'КилоДжоули',
 				'vol': 'Объем', 'ibu': 'IBU', 'ebc': 'EBC', 'container': 'Тара', 'manuf': 'Производитель',
 				'link': 'Ссылка', 'image': 'Скан'}
-	columns = (
-		'id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
-		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
 	def __init__(self, main):
 		# self.countries = (
@@ -75,10 +72,6 @@ class Search:
 		self.menu_table.add_command(label='Добавить столбец')
 		self.menu_table.add_command(label='Удалить столбец')
 		self.table.bind('<Button-3>', self._show_menu)
-
-	# def set_show(self, string):
-	# 	arr = string.split()
-	# 	self.show = list(arr)
 
 	def set_countries(self):
 		pass
@@ -146,21 +139,26 @@ class Search:
 
 class AddInfo(Search):
 	def __init__(self):
+		self.params_for_entry = (
+		'country', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
+		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 		self.data_flag = False
 		self.image = None
+		self.data_from_user = []
+
 		self.root_add = tk.Toplevel()
 		self.root_add.resizable(False, False)
 		self.root_add.title('Добавление данных')
 		self.root_add.geometry('1000x815')
 		self.entr_get = []
-		self.part_len = int(len(self.columns[:-2]) / 2)
-		for text, i in zip(self.columns[:self.part_len], range(self.part_len)):
+		self.part_len = int(len(self.params_for_entry[:-2]) / 2)
+		for text, i in zip(self.params_for_entry[:self.part_len], range(self.part_len)):
 			self.txt = tk.Label(self.root_add, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=0, row=i, padx=PAD, pady=PAD)
 			self.entr = tk.Entry(self.root_add, width=50)
 			self.entr_get.append(self.entr)
 			self.entr.grid(column=1, row=i, padx=PAD, pady=PAD)
-		for text, i in zip(self.columns[self.part_len:], range(self.part_len)):
+		for text, i in zip(self.params_for_entry[self.part_len:], range(self.part_len)):
 			self.txt = tk.Label(self.root_add, text=f'{self.HEADINGS[text]}')
 			self.txt.grid(sticky='w', column=2, row=i, padx=PAD, pady=PAD)
 			self.entr = tk.Entry(self.root_add, width=50)
@@ -171,22 +169,23 @@ class AddInfo(Search):
 		self.entr_link = tk.Entry(self.root_add, width=120)
 		self.entr_link.grid(column=1, columnspan=3, row=self.txt_link.grid_info()['row'], padx=PAD, pady=PAD)
 		self.txt_img = tk.Label(self.root_add, text='Скан')
-		self.txt_img.grid(sticky='e', row=len(self.columns) * 2, padx=PAD, pady=PAD)
+		self.txt_img.grid(sticky='e', row=len(self.params_for_entry) * 2, padx=PAD, pady=PAD)
 		self.entr_img = tk.Canvas(self.root_add, bg='white', width=450, height=450)
-		self.entr_img.grid(column=1, row=len(self.columns) * 2, columnspan=3, padx=PAD, pady=PAD)
+		self.entr_img.grid(column=1, row=len(self.params_for_entry) * 2, columnspan=3, padx=PAD, pady=PAD)
 		self.btn_img = tk.Button(self.root_add, text='Добавить', command=self._find_image)
-		self.btn_img.grid(row=len(self.columns) * 2, column=3, sticky='e')
-		self.btn_appl = tk.Button(self.root_add, text='Подтвердить', command=self._change_flag)
-		self.btn_appl.grid(column=1, row=len(self.columns) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
+		self.btn_img.grid(row=len(self.params_for_entry) * 2, column=3, sticky='e')
+		self.btn_appl = tk.Button(self.root_add, text='Подтвердить', command=self.change_flag)
+		self.btn_appl.grid(column=1, row=len(self.params_for_entry) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
 
-		# self.root_add.protocol('WM_DELETE_WINDOW', self._close_window)
+		self.root_add.protocol('WM_DELETE_WINDOW', self._close_window)
 
-	def _change_flag(self):
-		self.data_flag = True
+	def change_flag(self):
+		self.data_flag = not self.data_flag
 
 	def get_response_data(self):
 		while not self.data_flag:
 			time.sleep(0.001)
+		self.data_flag = False
 
 	def _find_image(self):
 		filepath = fd.askopenfilename()
@@ -198,12 +197,10 @@ class AddInfo(Search):
 			with open(os.path.abspath(filepath), 'rb') as f:
 				self.image = f.read()
 
-
 	def _format_data(self, arr):
 		for i in range(len(arr)):
 			if arr[i] != '':
 				arr[i] = arr[i].strip(' ')
-
 		for i in range(2, 5):
 			if arr[i]:
 				arr[i] = arr[i].capitalize()
@@ -212,14 +209,14 @@ class AddInfo(Search):
 	def _check(self, arr):
 		print(arr, end=' ')
 		print(' _check')
-		# standart_contry = ('Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
-		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
+		standart_contry = ('Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
+			'Африка', 'Америка', 'Северная Америка', 'Россия')
 		standart_type = ('Светлое', 'Темное', 'Тёмное', 'Полусветлое', 'Полутёмное', 'Полутемное', '')
 		standart_bool = ('Да', 'Нет', '')
 		if arr[0] == '':
 			mb.showerror('Error', 'Вы не ввели название страны')
 			return False
-		if arr[0] not in self.countries_list:
+		if arr[0] not in standart_contry:
 			mb.showerror('Error', 'Такой страны нет в списке или проверьте опечатки')
 			return False
 		if arr[2] not in standart_type:
@@ -238,32 +235,37 @@ class AddInfo(Search):
 		return True
 
 	def _get_user_values(self):
-		data = []
 		for i in self.entr_get:
-			data.append(i.get())
-		data.append(self.entr_link.get())
-		data = self._format_data(data)
-		if self.image is not None:
-			data.append(self.image)
+			self.data_from_user.append(i.get())
+		self.data_from_user = self._format_data(self.data_from_user)
+		if self.entr_link.get():
+			self.data_from_user.append(self.entr_link.get())
 		else:
-			data.append('')
-		return data
+			self.data_from_user.append('')
+		if self.image is not None:
+			self.data_from_user.append(self.image)
+		else:
+			self.data_from_user.append('')
+		return self.data_from_user
 
 	def get_data(self):
-		temp = self._get_user_values()
-		while True:
-			if self._check(temp):
-				return tuple(temp)
-			else:
-				self.data_flag = False
-				self.get_response_data()
-				temp = self._get_user_values()
+		if self.data_from_user is not None:
+			temp = self._get_user_values()
+			while True:
+				if self._check(temp):
+					return tuple(temp)
+				else:
+					self.data_flag = False
+					self.get_response_data()
+					temp = self._get_user_values()
 
 	def show_successful_window(self):
 		mb.showinfo('Successful', 'Данные записаны')
 
-	# def _close_window(self):
-	# 	self.root_add.destroy()
+	def _close_window(self):
+		self.data_flag = True
+		self.data_from_user = None
+		self.root_add.destroy()
 
 
 class Path:
