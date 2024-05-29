@@ -36,7 +36,7 @@ class Search:
 		# self.countries = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
-		self.countries_list = ('Германия',)
+		self.countries_list = ('Германия', 'Бельгия', 'Чехия_и_Словакия')
 		self.pages_of_countries = {}
 		self.wind_flag = False
 		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
@@ -59,19 +59,26 @@ class Search:
 			name = self._convert_name_for_show(i)
 			self.page = ttk.Frame(self.pages_control)
 			self.pages_control.add(self.page, text=name)
+
 			self.treeScroll = ttk.Scrollbar(self.page)
 			self.treeScroll.pack(side="right", fill="y")
+
 			self.table = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings', yscrollcommand=self.treeScroll.set)
 			self.treeScroll.config(command=self.table.yview)
+
 			self.pages_of_countries[i] = self.table
+
 			self._show_headings()
 			self.table.pack()
+
+			self.menu_table = tk.Menu(self.table, tearoff=0)
+			self.menu_table.add_command(label='Добавить столбец')
+			self.menu_table.add_command(label='Удалить столбец')
+
+			self.table.bind('<Button-3>', self._show_menu)
+
 		self.pages_control.grid(columnspan=2)
 
-		self.menu_table = tk.Menu(self.table, tearoff=0)
-		self.menu_table.add_command(label='Добавить столбец')
-		self.menu_table.add_command(label='Удалить столбец')
-		self.table.bind('<Button-3>', self._show_menu)
 
 	def set_countries(self):
 		pass
@@ -87,7 +94,7 @@ class Search:
 			width = len(self.HEADINGS[i]) * 7 + 20 	# Вот это крч не работает, надо перписать тк данные не влизают
 			self.len_col.append(width)
 			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
-			# self.table.column(i, width=width)
+			self.table.column(i, width=width)
 
 	def _format_data_for_show(self, arr):
 		temp = [i for i in arr[:-1]]
