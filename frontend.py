@@ -40,7 +40,7 @@ class Search:
 		self.pages_of_countries = {}
 		self.wind_flag = False
 		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
-		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
+					 'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 		self.len_col = []
 
 		self.tab1 = ttk.Frame(main)
@@ -55,6 +55,10 @@ class Search:
 		self.btn_find.grid(row=0, column=1, stick='e', pady=PAD, padx=PAD)
 
 		self.pages_control = ttk.Notebook(self.frm)
+		self.pages_control.bind('<<NotebookTabChanged>>', self._click)
+		self.pages_control.bind('<ButtonRelease-1>', self._release)
+		self.pages_control.bind('<B1-Motion>', self._motion)
+
 		for i in self.countries_list:
 			name = self._convert_name_for_show(i)
 			self.page = ttk.Frame(self.pages_control)
@@ -75,10 +79,9 @@ class Search:
 			self.menu_table.add_command(label='Добавить столбец')
 			self.menu_table.add_command(label='Удалить столбец')
 
-			self.table.bind('<Button-3>', self._show_menu)
+			self.table.bind('<Double-Button-3>', self._show_menu)
 
 		self.pages_control.grid(columnspan=2)
-
 
 	def set_countries(self):
 		pass
@@ -95,6 +98,9 @@ class Search:
 			self.len_col.append(width)
 			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
 			self.table.column(i, width=width)
+			# self.table.heading.bind('<Button-1>', self.drag_start)
+			# self.table.heading.bind('<B1-Motion>', self.drag_motion)
+
 
 	def _format_data_for_show(self, arr):
 		temp = [i for i in arr[:-1]]
@@ -109,7 +115,6 @@ class Search:
 		pass
 
 	def set_data_for_show(self, data, country):
-		print(self.len_col)
 		for string_of_data in data:
 			string_of_data = self._format_data_for_show(string_of_data)
 			self.pages_of_countries[country].insert('', tk.END, values=string_of_data)
@@ -117,7 +122,6 @@ class Search:
 				length_column = len(string_of_data[j]) * 7 + 20
 				if length_column > self.len_col[j]:
 					self.len_col[j] = length_column
-		print(self.len_col)
 		for i in range(len(self.show)):
 			self.table.column(self.show[i], width=self.len_col[i], anchor='center')
 
@@ -125,6 +129,19 @@ class Search:
 		region = self.table.identify('region', event.x, event.y)
 		if region == 'heading':
 			self.menu_table.post(event.x_root, event.y_root)
+
+	def _click(self, event):
+		selected_tab = event.widget.index("current")
+		tab_title = event.widget.tab(selected_tab, "text")
+		print(f"Tab selected: {tab_title}")
+# self.pages_control.insert(1, self.page)
+# print(self.pages_control.tabs())
+
+	def _release(self, event):
+		pass
+
+	def _motion(self, event):
+		pass
 
 	def _change_flag(self):
 		self.wind_flag = True

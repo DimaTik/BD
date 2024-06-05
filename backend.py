@@ -3,7 +3,7 @@ import time
 
 with sq.connect('db.db') as con:
 	cur = con.cursor()
-	cur.execute("""CREATE TABLE IF NOT EXISTS Германия(
+	cur.execute("""CREATE TABLE IF NOT EXISTS Чехия_и_Словакия(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT,
 		type TEXT,
