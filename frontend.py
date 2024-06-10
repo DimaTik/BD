@@ -36,7 +36,7 @@ class Search:
 		# self.countries = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
-		self.countries_list = ('Германия',)
+		self.countries_list = ('Германия', 'Бельгия')
 		self.pages_of_countries = {}
 		self.wind_flag = False
 		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
@@ -87,7 +87,7 @@ class Search:
 			width = len(self.HEADINGS[i]) * 7 + 20 	# Вот это крч не работает, надо перписать тк данные не влизают
 			self.len_col.append(width)
 			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
-			# self.table.column(i, width=width)
+			self.table.column(i, width=width)
 
 	def _format_data_for_show(self, arr):
 		temp = [i for i in arr[:-1]]
@@ -112,7 +112,7 @@ class Search:
 					self.len_col[j] = length_column
 		print(self.len_col)
 		for i in range(len(self.show)):
-			self.table.column(self.show[i], width=self.len_col[i], anchor='center')
+			self.pages_of_countries[country].column(self.show[i], width=self.len_col[i], anchor='center')
 
 	def _show_menu(self, event):
 		region = self.table.identify('region', event.x, event.y)
