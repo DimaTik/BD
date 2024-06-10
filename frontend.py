@@ -98,8 +98,6 @@ class Search:
 			self.len_col.append(width)
 			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
 			self.table.column(i, width=width)
-			# self.table.heading.bind('<Button-1>', self.drag_start)
-			# self.table.heading.bind('<B1-Motion>', self.drag_motion)
 
 
 	def _format_data_for_show(self, arr):
@@ -131,17 +129,25 @@ class Search:
 			self.menu_table.post(event.x_root, event.y_root)
 
 	def _click(self, event):
-		selected_tab = event.widget.index("current")
-		tab_title = event.widget.tab(selected_tab, "text")
+		widget = event.widget
+		widget.start_x = event.x
+		widget.start_y = event.y
+		selected_tab = widget.index("current")
+		tab_title = widget.tab(selected_tab, "text")
 		print(f"Tab selected: {tab_title}")
 # self.pages_control.insert(1, self.page)
 # print(self.pages_control.tabs())
 
 	def _release(self, event):
-		pass
+		widget = event.widget
+		region = widget.identify(event.x, event.y)
+		print(region)
 
 	def _motion(self, event):
-		pass
+		widget = event.widget
+		x = widget.winfo_x() - widget.start_x + event.x
+		y = widget.winfo_y() - widget.start_y + event.y
+		print(x, y)
 
 	def _change_flag(self):
 		self.wind_flag = True
@@ -215,9 +221,9 @@ class AddInfo(Search):
 		filepath = fd.askopenfilename()
 		if filepath[-3:] == 'jpg' or filepath[-3:] == 'png':
 			self.image = Image.open(os.path.abspath(filepath))
-			photo = ImageTk.PhotoImage(self.image)
+			self.photo = ImageTk.PhotoImage(self.image)
 			self.entr_img.delete('all')
-			self.entr_img.create_image(0, 0, anchor='nw', image=photo)
+			self.entr_img.create_image(0, 0, anchor='nw', image=self.photo)
 			with open(os.path.abspath(filepath), 'rb') as f:
 				self.image = f.read()
 
