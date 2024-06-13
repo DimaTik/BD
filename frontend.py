@@ -36,7 +36,7 @@ class Search:
 		# self.countries = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
-		self.countries_list = ('Германия',)
+		self.countries_list = ('Германия', 'Бельгия')
 		self.pages_of_countries = {}
 		self.pages_of_countries_visual = {}
 		self.wind_flag = False
@@ -145,7 +145,6 @@ class Search:
 		return string.replace('_', ' ')
 
 	def _swap(self, tv, col1, col2, tab):
-		print(tv)
 		dcols = list(tv["displaycolumns"])
 		if dcols[0] == "#all":
 			dcols = list(tv["columns"])
@@ -160,6 +159,8 @@ class Search:
 	def _bDown(self, event):
 		global col_from, dx, col_from_id
 		tv = event.widget
+		selected_countries = self.pages_control.tab(self.pages_control.select(), 'text')
+		index = self.pages_control.index(self.pages_control.select())
 		if tv.identify_region(event.x, event.y) != 'separator':
 			col = tv.identify_column(event.x)
 			col_from_id = tv.column(col, 'id')
@@ -168,27 +169,29 @@ class Search:
 			bbox = tv.bbox(tv.get_children("")[0], col_from_id)
 			dx = bbox[0] - event.x  # distance between cursor and column left border
 			# tv.heading(col_from_id, text='')
-			self.visual_drag.configure(displaycolumns=[col_from_id])
-			self.visual_drag.place(in_=tv, x=bbox[0], y=0, anchor='nw', width=bbox[2], relheight=1)
+			self.pages_of_countries_visual[selected_countries].configure(displaycolumns=[col_from_id])
+			self.pages_of_countries_visual[selected_countries].place(in_=tv, x=bbox[0], y=0, anchor='nw', width=bbox[2], relheight=1)
 		else:
 			col_from = None
 
 	def _bUp(self, event):
-		self.visual_drag.place_forget()
+		selected_countries = self.pages_control.tab(self.pages_control.select(), 'text')
+		self.pages_of_countries_visual[selected_countries].place_forget()
 
 	def _bMotion(self, event):
 		tv = event.widget
 		selected_countries = self.pages_control.tab(self.pages_control.select(), 'text')
 		# drag around label if visible
-		if self.visual_drag.winfo_ismapped():
+		if self.pages_of_countries_visual[selected_countries].winfo_ismapped():
 			x = dx + event.x
 			# middle of the dragged column
 			xm = int(x + self.visual_drag.column('#1', 'width') / 2)
-			self.visual_drag.place_configure(x=x)
+			self.pages_of_countries_visual[selected_countries].place_configure(x=x)
 			col = tv.identify_column(xm)
 			# if the middle of the dragged column is in another column, swap them
 			if tv.column(col, 'id') != col_from_id:
 				self._swap(tv, col_from_id, col, selected_countries)
+
 	# def close_window(self):
 	# 	self.wind_flag = False
 	# 	self.tab1.destroy()
