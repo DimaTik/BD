@@ -36,8 +36,9 @@ class Search:
 		# self.countries = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
-		self.countries_list = ('Германия', 'Бельгия')
+		self.countries_list = ('Германия',)
 		self.pages_of_countries = {}
+		self.pages_of_countries_visual = {}
 		self.wind_flag = False
 		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
@@ -59,13 +60,26 @@ class Search:
 			name = self._convert_name_for_show(i)
 			self.page = ttk.Frame(self.pages_control)
 			self.pages_control.add(self.page, text=name)
+
 			self.treeScroll = ttk.Scrollbar(self.page)
 			self.treeScroll.pack(side="right", fill="y")
+
 			self.table = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings', yscrollcommand=self.treeScroll.set)
+			self.visual_drag = ttk.Treeview(self.page, columns=self._reformat_column(), show='headings')
+
 			self.treeScroll.config(command=self.table.yview)
+
 			self.pages_of_countries[i] = self.table
-			self._show_headings()
+			self.pages_of_countries_visual[i] = self.visual_drag
+
+			self.table.bind("<ButtonPress-1>", self._bDown)
+			self.table.bind("<ButtonRelease-1>", self._bUp)
+			self.table.bind("<Motion>", self._bMotion)
+
+			self._show_headings(self.table)
+			self._show_headings(self.visual_drag)
 			self.table.pack()
+
 		self.pages_control.grid(columnspan=2)
 
 		self.menu_table = tk.Menu(self.table, tearoff=0)
@@ -82,12 +96,12 @@ class Search:
 	def _reformat_column(self):
 		return tuple(self.show)
 
-	def _show_headings(self):
+	def _show_headings(self, table):
 		for i in self.show:
 			width = len(self.HEADINGS[i]) * 7 + 20 	# Вот это крч не работает, надо перписать тк данные не влизают
 			self.len_col.append(width)
-			self.table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
-			self.table.column(i, width=width)
+			table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
+			table.column(i, width=width)
 
 	def _format_data_for_show(self, arr):
 		temp = [i for i in arr[:-1]]
@@ -102,17 +116,17 @@ class Search:
 		pass
 
 	def set_data_for_show(self, data, country):
-		print(self.len_col)
 		for string_of_data in data:
 			string_of_data = self._format_data_for_show(string_of_data)
 			self.pages_of_countries[country].insert('', tk.END, values=string_of_data)
+			self.pages_of_countries_visual[country].insert('', tk.END, values=string_of_data)
 			for j in range(1, len(string_of_data)):
 				length_column = len(string_of_data[j]) * 7 + 20
 				if length_column > self.len_col[j]:
 					self.len_col[j] = length_column
-		print(self.len_col)
 		for i in range(len(self.show)):
 			self.pages_of_countries[country].column(self.show[i], width=self.len_col[i], anchor='center')
+			self.pages_of_countries_visual[country].column(self.show[i], width=self.len_col[i], anchor='center')
 
 	def _show_menu(self, event):
 		region = self.table.identify('region', event.x, event.y)
@@ -130,6 +144,51 @@ class Search:
 	def _convert_name_for_show(self, string):
 		return string.replace('_', ' ')
 
+	def _swap(self, tv, col1, col2, tab):
+		print(tv)
+		dcols = list(tv["displaycolumns"])
+		if dcols[0] == "#all":
+			dcols = list(tv["columns"])
+		id1 = self.pages_of_countries[tab].column(col1, 'id')
+		id2 = self.pages_of_countries[tab].column(col2, 'id')
+		i1 = dcols.index(id1)
+		i2 = dcols.index(id2)
+		dcols[i1] = id2
+		dcols[i2] = id1
+		tv["displaycolumns"] = dcols
+
+	def _bDown(self, event):
+		global col_from, dx, col_from_id
+		tv = event.widget
+		if tv.identify_region(event.x, event.y) != 'separator':
+			col = tv.identify_column(event.x)
+			col_from_id = tv.column(col, 'id')
+			col_from = int(col[1:]) - 1  # subtract 1 because display columns array 0 = tree column 1
+			# get column x coordinate and width
+			bbox = tv.bbox(tv.get_children("")[0], col_from_id)
+			dx = bbox[0] - event.x  # distance between cursor and column left border
+			# tv.heading(col_from_id, text='')
+			self.visual_drag.configure(displaycolumns=[col_from_id])
+			self.visual_drag.place(in_=tv, x=bbox[0], y=0, anchor='nw', width=bbox[2], relheight=1)
+		else:
+			col_from = None
+
+	def _bUp(self, event):
+		self.visual_drag.place_forget()
+
+	def _bMotion(self, event):
+		tv = event.widget
+		selected_countries = self.pages_control.tab(self.pages_control.select(), 'text')
+		# drag around label if visible
+		if self.visual_drag.winfo_ismapped():
+			x = dx + event.x
+			# middle of the dragged column
+			xm = int(x + self.visual_drag.column('#1', 'width') / 2)
+			self.visual_drag.place_configure(x=x)
+			col = tv.identify_column(xm)
+			# if the middle of the dragged column is in another column, swap them
+			if tv.column(col, 'id') != col_from_id:
+				self._swap(tv, col_from_id, col, selected_countries)
 	# def close_window(self):
 	# 	self.wind_flag = False
 	# 	self.tab1.destroy()
@@ -191,9 +250,9 @@ class AddInfo(Search):
 		filepath = fd.askopenfilename()
 		if filepath[-3:] == 'jpg' or filepath[-3:] == 'png':
 			self.image = Image.open(os.path.abspath(filepath))
-			photo = ImageTk.PhotoImage(self.image)
+			self.photo = ImageTk.PhotoImage(self.image)
 			self.entr_img.delete('all')
-			self.entr_img.create_image(0, 0, anchor='nw', image=photo)
+			self.entr_img.create_image(0, 0, anchor='nw', image=self.photo)
 			with open(os.path.abspath(filepath), 'rb') as f:
 				self.image = f.read()
 
