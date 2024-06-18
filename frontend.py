@@ -113,7 +113,6 @@ class Search:
 		temp = [i for i in arr]
 		for i in self.countries_list:
 			self.pages_of_countries[i]["columns"] = tuple(temp)
-			# self._show_headings(self.pages_of_countries[i])
 			self.pages_of_countries[i].pack()
 
 	def set_countries(self):
@@ -132,15 +131,12 @@ class Search:
 
 	def _show_headings(self, table):
 		for i in range(len(self.show)):
-			# print(self.show[i], self.HEADINGS[self.show[i]])
 			table.heading(self.show[i], text=self.HEADINGS[self.show[i]], command=self._show_menu)
-			# table.heading(self.show[i], text=self.HEADINGS[self.show[i]], command=self._show_menu)
 			table.column(self.show[i], width=self.len_col[i])
-		# print()
 
 	def _format_data_for_show(self, arr):
 		temp = []
-		for i in self.columns:
+		for i in self.show:
 			temp.append(arr[self.columns.index(i)])
 		if isinstance(arr[-1], bytes):
 			temp[-1] = 'Открыть изображение'
