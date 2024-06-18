@@ -1,5 +1,4 @@
 import sqlite3 as sq
-import time
 
 with sq.connect('db.db') as con:
 	cur = con.cursor()
@@ -26,6 +25,16 @@ with sq.connect('db.db') as con:
 		image BLOB
 )""")
 
+# with sq.connect('db.db') as con:
+# 	cur = con.cursor()
+# 	cur.execute("DROP TABLE sys")
+# #
+# with sq.connect('db.db') as con:
+# 	cur = con.cursor()
+# 	cur.execute("""CREATE TABLE IF NOT EXISTS sys(
+# 		column_order TEXT
+# 	)""")
+
 
 class Data:
 	columns = (
@@ -33,7 +42,8 @@ class Data:
 		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
 
 	def __init__(self):
-		self.successful_flag = False
+		self.successful_set_data = False
+		self.successful_close_program = False
 
 	def _column(self, arr):
 		temp = []
@@ -72,14 +82,34 @@ class Data:
 			with sq.connect('db.db', check_same_thread=False) as con:
 				cur = con.cursor()
 				cur.execute(response, write_arr)
-			self.successful_flag = True
+			self.successful_set_data = True
 			print('write data finish')
 
 	def get_data(self, country):
 		with sq.connect('db.db', check_same_thread=False) as con:
 			cur = con.cursor()
 			arr = cur.execute(f"SELECT * FROM {country}").fetchall()
-			return tuple(arr)
+		return tuple(arr)
 
-	def get_successful_flag(self):
-		return self.successful_flag
+	def set_column_order(self, columns):
+		print(columns)
+		with sq.connect('db.db', check_same_thread=False) as con:
+			cur = con.cursor()
+			response = f"UPDATE sys SET column_order = '{columns}'"
+			# response = f"INSERT INTO sys VALUES('{columns}')"
+			print(f'{response} set_column_order')
+			cur.execute(response)
+		self.successful_close_program = True
+
+	def get_column_order(self):
+		with sq.connect('db.db', check_same_thread=False) as con:
+			cur = con.cursor()
+			cur.execute("SELECT * FROM sys")
+			order = cur.fetchone()[0]
+		return list(order.split())
+
+	def get_successful_set_data(self):
+		return self.successful_set_data
+
+	def get_successful_close_program(self):
+		return self.successful_close_program

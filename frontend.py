@@ -12,11 +12,25 @@ PAD = 5
 
 
 class MainWindow:
-	def __init__(self):
+	def __init__(self, order_column):
+		self.close_flag = False
 		self.root = tk.Tk()
 		self.root.title("Beer")
 		self.tab_control = ttk.Notebook(self.root)
-		self.search_tab = Search(self.tab_control)
+		self.search_tab = Search(self.tab_control, order_column)
+		self.root.protocol('WM_DELETE_WINDOW', self._close_window)
+
+	# def destroy_window(self):
+	# 	self.root.destroy()
+
+	def get_response_close_program(self):
+		while not self.close_flag:
+			time.sleep(0.001)
+		self.close_flag = False
+
+	def _close_window(self):
+		self.close_flag = True
+		self.root.destroy()
 
 	def pack(self):
 		self.tab_control.pack(expand=1, fill=tk.BOTH)
@@ -32,17 +46,19 @@ class Search:
 				'vol': 'Объем', 'ibu': 'IBU', 'ebc': 'EBC', 'container': 'Тара', 'manuf': 'Производитель',
 				'link': 'Ссылка', 'image': 'Скан'}
 
-	def __init__(self, main):
-		# self.countries = (
+	columns = ['id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl', 'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image']
+
+	def __init__(self, main, order_column):
+		# self.countries_list = (
 		# 	'Германия', 'Бельгия', 'Чехия и Словакия', 'Англия', 'Украина', 'СНГ', 'Карибы', 'Прибалтика', 'Европа', 'Азия',
 		# 	'Африка', 'Америка', 'Северная Америка', 'Россия')
 		self.countries_list = ('Германия', 'Бельгия')
 		self.pages_of_countries = {}
 		self.pages_of_countries_visual = {}
 		self.wind_flag = False
-		self.show = ('id', 'name', 'type', 'paster', 'filter', 'barcode', 'nach', 'alc', 'carb', 'prot', 'fat', 'kcal', 'kjl',
-		'vol', 'ibu', 'ebc', 'container', 'manuf', 'link', 'image')
-		self.len_col = []
+		self.show = order_column
+		# self.columns = order_column
+		self.len_col = self._set_column_width()
 
 		self.tab1 = ttk.Frame(main)
 		main.add(self.tab1, text='Search')
@@ -87,26 +103,47 @@ class Search:
 		self.menu_table.add_command(label='Удалить столбец')
 		self.table.bind('<Button-3>', self._show_menu)
 
+	def get_countries(self):
+		return self.countries_list
+
+	def get_column_order(self):
+		return ' '.join(self.show)
+
+	def set_column_order(self, arr):
+		temp = [i for i in arr]
+		for i in self.countries_list:
+			self.pages_of_countries[i]["columns"] = tuple(temp)
+			# self._show_headings(self.pages_of_countries[i])
+			self.pages_of_countries[i].pack()
+
 	def set_countries(self):
 		pass
 
-	def set_columns(self):
-		pass
-
+	# Это если что обёртка
 	def _reformat_column(self):
 		return tuple(self.show)
 
+	def _set_column_width(self):
+		temp = []
+		for i in self.columns:
+			width = len(self.HEADINGS[i]) * 7 + 20
+			temp.append(width)
+		return temp
+
 	def _show_headings(self, table):
-		for i in self.show:
-			width = len(self.HEADINGS[i]) * 7 + 20 	# Вот это крч не работает, надо перписать тк данные не влизают
-			self.len_col.append(width)
-			table.heading(i, text=self.HEADINGS[i], command=self._show_menu)
-			table.column(i, width=width)
+		for i in range(len(self.show)):
+			# print(self.show[i], self.HEADINGS[self.show[i]])
+			table.heading(self.show[i], text=self.HEADINGS[self.show[i]], command=self._show_menu)
+			# table.heading(self.show[i], text=self.HEADINGS[self.show[i]], command=self._show_menu)
+			table.column(self.show[i], width=self.len_col[i])
+		# print()
 
 	def _format_data_for_show(self, arr):
-		temp = [i for i in arr[:-1]]
+		temp = []
+		for i in self.columns:
+			temp.append(arr[self.columns.index(i)])
 		if isinstance(arr[-1], bytes):
-			temp.append('Открыть изображение')
+			temp[-1] = 'Открыть изображение'
 		for i in range(len(temp)):
 			if temp[i] is None:
 				temp[i] = ' '
@@ -116,6 +153,7 @@ class Search:
 		pass
 
 	def set_data_for_show(self, data, country):
+		print(self.len_col)
 		for string_of_data in data:
 			string_of_data = self._format_data_for_show(string_of_data)
 			self.pages_of_countries[country].insert('', tk.END, values=string_of_data)
@@ -124,9 +162,9 @@ class Search:
 				length_column = len(string_of_data[j]) * 7 + 20
 				if length_column > self.len_col[j]:
 					self.len_col[j] = length_column
-		for i in range(len(self.show)):
-			self.pages_of_countries[country].column(self.show[i], width=self.len_col[i], anchor='center')
-			self.pages_of_countries_visual[country].column(self.show[i], width=self.len_col[i], anchor='center')
+		for i in range(len(self.columns)):
+			self.pages_of_countries[country].column(self.columns[i], width=self.len_col[i], anchor='center')
+			self.pages_of_countries_visual[country].column(self.columns[i], width=self.len_col[i], anchor='center')
 
 	def _show_menu(self, event):
 		region = self.table.identify('region', event.x, event.y)
@@ -155,6 +193,7 @@ class Search:
 		dcols[i1] = id2
 		dcols[i2] = id1
 		tv["displaycolumns"] = dcols
+		self.show = dcols
 
 	def _bDown(self, event):
 		global col_from, dx, col_from_id
@@ -168,7 +207,6 @@ class Search:
 			# get column x coordinate and width
 			bbox = tv.bbox(tv.get_children("")[0], col_from_id)
 			dx = bbox[0] - event.x  # distance between cursor and column left border
-			# tv.heading(col_from_id, text='')
 			self.pages_of_countries_visual[selected_countries].configure(displaycolumns=[col_from_id])
 			self.pages_of_countries_visual[selected_countries].place(in_=tv, x=bbox[0], y=0, anchor='nw', width=bbox[2], relheight=1)
 		else:
@@ -191,10 +229,6 @@ class Search:
 			# if the middle of the dragged column is in another column, swap them
 			if tv.column(col, 'id') != col_from_id:
 				self._swap(tv, col_from_id, col, selected_countries)
-
-	# def close_window(self):
-	# 	self.wind_flag = False
-	# 	self.tab1.destroy()
 
 # Потом мейби напишешь штуку выбора строки
 
@@ -226,16 +260,20 @@ class AddInfo(Search):
 			self.entr = tk.Entry(self.root_add, width=50)
 			self.entr_get.append(self.entr)
 			self.entr.grid(column=3, row=i, padx=PAD, pady=PAD)
+
 		self.txt_link = tk.Label(self.root_add, text='Ссылка')
 		self.txt_link.grid(sticky='w', column=0, padx=PAD, pady=PAD)
 		self.entr_link = tk.Entry(self.root_add, width=120)
 		self.entr_link.grid(column=1, columnspan=3, row=self.txt_link.grid_info()['row'], padx=PAD, pady=PAD)
+
 		self.txt_img = tk.Label(self.root_add, text='Скан')
 		self.txt_img.grid(sticky='e', row=len(self.params_for_entry) * 2, padx=PAD, pady=PAD)
 		self.entr_img = tk.Canvas(self.root_add, bg='white', width=450, height=450)
 		self.entr_img.grid(column=1, row=len(self.params_for_entry) * 2, columnspan=3, padx=PAD, pady=PAD)
+
 		self.btn_img = tk.Button(self.root_add, text='Добавить', command=self._find_image)
 		self.btn_img.grid(row=len(self.params_for_entry) * 2, column=3, sticky='e')
+
 		self.btn_appl = tk.Button(self.root_add, text='Подтвердить', command=self.change_flag)
 		self.btn_appl.grid(column=1, row=len(self.params_for_entry) * 2 + 1, columnspan=3, padx=PAD, pady=PAD)
 
